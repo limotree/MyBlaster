@@ -7,6 +7,7 @@
 #include "Components/WidgetComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
+#include "MyBlaster/BlasterComponents/CombatComponent.h"
 #include "MyBlaster/Weapon/Weapon.h"
 #include "Net/UnrealNetwork.h"
 
@@ -29,6 +30,8 @@ ABlasterCharacter::ABlasterCharacter()
 	GetCharacterMovement()->bOrientRotationToMovement = true;
 	OverheadWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("OverheadWidget"));
 	OverheadWidget->SetupAttachment(RootComponent);
+	Combat = CreateDefaultSubobject<UCombatComponent>(TEXT("CombatComponent"));
+	Combat->SetIsReplicated(true);
 }
 
 void ABlasterCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -38,6 +41,15 @@ void ABlasterCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Ou
 	// DOREPLIFETIME(ABlasterCharacter, Health);
 	// DOREPLIFETIME(ABlasterCharacter, Shield);
 	// DOREPLIFETIME(ABlasterCharacter, bDisableGameplay);
+}
+
+void ABlasterCharacter::PostInitializeComponents()
+{
+	Super::PostInitializeComponents();
+	if (Combat)
+	{
+		Combat->Character = this; 
+	}
 }
 
 // Called when the game starts or when spawned
@@ -55,6 +67,7 @@ void ABlasterCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 	PlayerInputComponent->BindAxis("MoveRight", this, &ABlasterCharacter::MoveRight);
 	PlayerInputComponent->BindAxis("Turn", this, &ABlasterCharacter::Turn);
 	PlayerInputComponent->BindAxis("LookUp", this, &ABlasterCharacter::LookUp);
+	PlayerInputComponent->BindAction("Equip", IE_Pressed, this, &ABlasterCharacter::EquipButtonPressed);
 }
 
 
@@ -89,6 +102,18 @@ void ABlasterCharacter::LookUp(float Value)
 {
 	AddControllerPitchInput(Value);
 }
+
+void ABlasterCharacter::EquipButtonPressed()
+{
+	// 武器装备由服务器完成 The server has authority, the server is in charge
+	// We need the server to validate that
+	if (Combat && HasAuthority())
+	{	// 只有服务器才有权限
+		Combat->EquipWeapon(OverlappingWeapon);
+	}
+	
+}
+
 
 void ABlasterCharacter::OnRep_OverlappingWeapon(AWeapon* LastWeapon)
 {
