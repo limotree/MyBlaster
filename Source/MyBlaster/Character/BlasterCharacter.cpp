@@ -48,7 +48,7 @@ void ABlasterCharacter::PostInitializeComponents()
 	Super::PostInitializeComponents();
 	if (Combat)
 	{
-		Combat->Character = this; 
+		Combat->Character = this;
 	}
 }
 
@@ -107,13 +107,28 @@ void ABlasterCharacter::EquipButtonPressed()
 {
 	// 武器装备由服务器完成 The server has authority, the server is in charge
 	// We need the server to validate that
-	if (Combat && HasAuthority())
-	{	// 只有服务器才有权限
-		Combat->EquipWeapon(OverlappingWeapon);
+	if (Combat)
+	{
+		// 只有服务器才有权限
+		if (HasAuthority())
+		{
+			Combat->EquipWeapon(OverlappingWeapon);
+		}
+		else
+		{
+			ServerEquipButtonPressed(); //客户端发送RPC
+		}
 	}
-	
 }
 
+// RPC方法只在服务端执行
+void ABlasterCharacter::ServerEquipButtonPressed_Implementation()
+{
+	if (Combat)
+	{
+		Combat->EquipWeapon(OverlappingWeapon);
+	}
+}
 
 void ABlasterCharacter::OnRep_OverlappingWeapon(AWeapon* LastWeapon)
 {
@@ -126,6 +141,7 @@ void ABlasterCharacter::OnRep_OverlappingWeapon(AWeapon* LastWeapon)
 		LastWeapon->ShowPickupWidget(false);
 	}
 }
+
 
 void ABlasterCharacter::SetOverlappingWeapon(AWeapon* Weapon)
 {

@@ -26,6 +26,7 @@ public:
 	AWeapon();
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	void ShowPickupWidget(bool bShowWidget);
 
 protected:
@@ -58,13 +59,18 @@ private:
 	USkeletalMeshComponent* WeaponMesh;
 
 	UPROPERTY(VisibleAnywhere, Category = "Weapon Properties")
-	class USphereComponent* AreaSphere;
-	UPROPERTY(VisibleAnywhere)
+	class USphereComponent* AreaSphere; // 碰撞检测区域
+
+	UPROPERTY(ReplicatedUsing= OnRep_WeaponState, VisibleAnywhere, Category= "Weapon Properties")
 	EWeaponState WeaponState;
 
+	UFUNCTION()
+	void OnRep_WeaponState();
+
 	UPROPERTY(VisibleAnywhere, Category = "Weapon Properties")
-	class UWidgetComponent* PickupWidget;
+	class UWidgetComponent* PickupWidget; // 提示文本
 
 public:
-	FORCEINLINE void SetWeaponState(EWeaponState State) {WeaponState = State;}
+	void SetWeaponState(EWeaponState State);
+	FORCEINLINE USphereComponent* GetAreaSphere() const { return AreaSphere; }
 };
