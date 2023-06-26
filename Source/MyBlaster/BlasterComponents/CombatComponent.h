@@ -20,20 +20,26 @@ public:
 	friend class ABlasterCharacter;
 	// Called every frame
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType,
-							   FActorComponentTickFunction* ThisTickFunction) override;
+	                           FActorComponentTickFunction* ThisTickFunction) override;
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 	void EquipWeapon(class AWeapon* WeaponToEquip);
+
 protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;
+	void SetAiming(bool bIsAiming);
+	UFUNCTION(Server, Reliable)
+	void ServerSetAiming(bool bIsAiming);
+
 private:
 	// 角色
 	ABlasterCharacter* Character;
 	// 武器 同步一个变量时，需要注册 并获取生命周期属性
 	UPROPERTY(Replicated)
 	AWeapon* EquippedWeapon;
+	UPROPERTY(Replicated)
+	bool bAiming;
 
 public:
-
 };
