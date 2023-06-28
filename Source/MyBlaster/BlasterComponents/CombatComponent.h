@@ -31,13 +31,17 @@ protected:
 	void SetAiming(bool bIsAiming);
 	UFUNCTION(Server, Reliable)
 	void ServerSetAiming(bool bIsAiming);
+	UFUNCTION()
+	void OnRep_EquippedWeapon();
 
 private:
 	// 角色
 	ABlasterCharacter* Character;
 	// 武器 同步一个变量时，需要注册 并获取生命周期属性
-	UPROPERTY(Replicated)
+	
+	UPROPERTY(ReplicatedUsing = OnRep_EquippedWeapon)
 	AWeapon* EquippedWeapon;
+	
 	UPROPERTY(Replicated)
 	bool bAiming;
 
